@@ -1,9 +1,12 @@
 class Redis
+  attr_reader :data
+  attr_accessor :args
 
   def initialize
     @args = []
     @data = {}
     @output = []
+    @transactions = []
   end
 
   def get_input(user_input)
@@ -12,7 +15,14 @@ class Redis
   end
 
   def evaluate_input
+    p @args
     case @args[0].upcase
+    when "BEGIN"
+      begin_transaction
+    when "ROLLBACK"
+      rollback
+    when "COMMIT"
+      @transactions = []
     when "END"
       exit
     when "SET"
@@ -29,6 +39,21 @@ class Redis
       @output[1] = "Error, unrecognized command"
     end 
     reset_args
+  end
+
+  def begin_transaction
+    db_snaphsot = @data.clone
+    @transactions << db_snaphsot
+    @output[0] = false
+  end
+
+  def rollback
+    if @transactions.length == 0
+      @output = [true, "NO TRANSACTION"]
+    else
+      @data = @transactions.pop
+      @output = [false]
+    end
   end
 
   def reset_args
@@ -61,3 +86,7 @@ class Redis
   end
 
 end
+
+
+
+
