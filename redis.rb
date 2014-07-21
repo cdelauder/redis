@@ -1,6 +1,4 @@
 class Redis
-  attr_reader :data
-  attr_accessor :args
 
   def initialize
     @args = []
@@ -15,7 +13,6 @@ class Redis
   end
 
   def evaluate_input
-    p @args
     case @args[0].upcase
     when "BEGIN"
       begin_transaction
@@ -32,19 +29,21 @@ class Redis
     when "UNSET"
       delete_value
     when "NUMEQUALTO"
-      @output[0] = true
-      @output[1] = numequalto
+      @output = [true, numequalto]
     else
-      @output[0] = true
-      @output[1] = "Error, unrecognized command"
+      @output = [true, "Error, unrecognized command"]
     end 
     reset_args
   end
 
   def begin_transaction
+    take_snapshot
+    @output = [false]
+  end
+
+  def take_snapshot
     db_snaphsot = @data.clone
     @transactions << db_snaphsot
-    @output[0] = false
   end
 
   def rollback
@@ -63,20 +62,19 @@ class Redis
 
   def set_value
     @data[@args[1]] = @args[2]
-    @output[0] = false
+    @output = [false]
   end
 
   def delete_value
     @data.delete(@args[1])
-    @output[0] = false
+    @output = [false]
   end
 
   def return_value
-    @output[0] = true
     if @data[@args[1]] 
-      @output[1] = @data[@args[1]] 
+      @output = [true, @data[@args[1]]]
     else
-      @output[1] = "NULL"
+      @output = [true, "NULL"]
     end
   end
 
