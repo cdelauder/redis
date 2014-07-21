@@ -21,6 +21,9 @@ class Redis
       return_value
     when "UNSET"
       delete_value
+    when "NUMEQUALTO"
+      @output[0] = true
+      @output[1] = numequalto
     else
       @output[0] = true
       @output[1] = "Error, unrecognized command"
@@ -50,6 +53,11 @@ class Redis
     else
       @output[1] = "NULL"
     end
+  end
+
+  def numequalto
+    values = @data.values.select {|value| value == @args[1]}
+    values.count 
   end
 
 end
