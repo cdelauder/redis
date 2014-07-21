@@ -61,8 +61,12 @@ class Redis
   end
 
   def set_value
-    @data[@args[1]] = @args[2]
+    @data[@args[1]] = make_value
     @output = [false]
+  end
+
+  def make_value
+    value = @args[2..@args.length].join("")
   end
 
   def delete_value
